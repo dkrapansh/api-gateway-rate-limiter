@@ -6,6 +6,7 @@ from .utils import generate_api_key, hash_api_key
 from .database import engine, Base
 
 from . import models
+from .models import RequestLog
 
 Base.metadata.create_all(bind=engine)
 
@@ -25,6 +26,11 @@ def get_api_key(x_api_key: str = Header(...), db: Session = Depends(get_db)):
 
     if not api_key:
         raise HTTPException(status_code=401, detail="Invalid API Key")
+    
+    log = RequestLog(api_key_id=api_key.id)
+    db.add(log)
+    db.commit()
+    
     return api_key 
 
 @app.get("/")

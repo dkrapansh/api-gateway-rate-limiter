@@ -49,3 +49,7 @@ def register_user(email: str, db: Session = Depends(get_db)):
         "api_key": raw_key,
         "message": "Save this key securely. It will not be shown again."
     }
+
+@app.get("/protected")
+def protected_route(api_key: APIKey = Depends(get_api_key)):
+    return {"message": "You have access", "user_id": api_key.user_id}

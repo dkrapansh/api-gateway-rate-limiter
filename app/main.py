@@ -8,6 +8,12 @@ from .database import engine, Base
 from . import models
 from .models import RequestLog
 
+from datetime import datetime, timedelta, timezone
+
+from pydantic import BaseModel
+class UserCreate(BaseModel):
+    email: str
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -19,6 +25,9 @@ def get_db():
     finally:
         db.close()
 
+MAX_REQUESTS = 5
+WINDOW_SECONDS = 60
+
 def get_api_key(x_api_key: str = Header(...), db: Session = Depends(get_db)):
     hashed_key = hash_api_key(x_api_key)
 
@@ -26,21 +35,31 @@ def get_api_key(x_api_key: str = Header(...), db: Session = Depends(get_db)):
 
     if not api_key:
         raise HTTPException(status_code=401, detail="Invalid API Key")
+
+    window_start = datetime.utcnow() - timedelta(seconds=WINDOW_SECONDS)
+
+    request_count = db.query(RequestLog).filter(
+        RequestLog.api_key_id == api_key.id,
+        RequestLog.timestamp >= window_start
+    ).count()
+
+    if request_count > MAX_REQUESTS - 1:
+        raise HTTPException(status_code=429, detail="Rate limit exceeded")
     
     log = RequestLog(api_key_id=api_key.id)
     db.add(log)
     db.commit()
     
-    return api_key 
+    return api_key
 
 @app.get("/")
 def home():
     return{"message": "API Gateway is running"}
 
 @app.post("/register")
-def register_user(email: str, db: Session = Depends(get_db)):
-    user = User(email=email)
-    db.add(user)
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    user_obj = User(email=user.email)
+    db.add(user_obj)
     db.commit()
     db.refresh(user)
 

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Header, HTTPException
+from fastapi import FastAPI, Depends, Header, HTTPException, Body
 from sqlalchemy.orm import Session
 from .database import SessionLocal
 from .models import User, APIKey
@@ -8,7 +8,7 @@ from .database import engine, Base
 from . import models
 from .models import RequestLog
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from pydantic import BaseModel
 class UserCreate(BaseModel):
@@ -52,25 +52,21 @@ def get_api_key(x_api_key: str = Header(...), db: Session = Depends(get_db)):
     
     return api_key
 
-@app.get("/")
-def home():
-    return{"message": "API Gateway is running"}
-
 @app.post("/register")
-def register_user(user: UserCreate, db: Session = Depends(get_db)):
+def register_user(user: UserCreate = Body(...), db: Session = Depends(get_db)):
     user_obj = User(email=user.email)
     db.add(user_obj)
     db.commit()
-    db.refresh(user)
+    db.refresh(user_obj)
 
     raw_key = generate_api_key()
     hashed_key = hash_api_key(raw_key)
 
-    api_key = APIKey(key = hashed_key, user_id = user.id)
+    api_key = APIKey(key=hashed_key, user_id=user_obj.id)
     db.add(api_key)
     db.commit()
 
-    return{
+    return {
         "api_key": raw_key,
         "message": "Save this key securely. It will not be shown again."
     }

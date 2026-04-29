@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Header, HTTPException, Body, Response
+from fastapi import FastAPI, Depends, Header, HTTPException, Body, Request, Response
 from sqlalchemy.orm import Session
 from .database import SessionLocal
 from .models import User, APIKey
@@ -28,7 +28,7 @@ def get_db():
 MAX_REQUESTS = 5
 WINDOW_SECONDS = 60
 
-def get_api_key(x_api_key: str = Header(...), db: Session = Depends(get_db), response: Response = None):
+def get_api_key(request : Request, x_api_key: str = Header(...), db: Session = Depends(get_db), response: Response = None):
     hashed_key = hash_api_key(x_api_key)
 
     api_key = db.query(APIKey).filter(APIKey.key == hashed_key).first()
@@ -60,7 +60,7 @@ def get_api_key(x_api_key: str = Header(...), db: Session = Depends(get_db), res
                             }
                         )
     
-    log = RequestLog(api_key_id=api_key.id)
+    log = RequestLog(api_key_id=api_key.id, endpoint=request.url.path)
     db.add(log)
     db.commit()
     

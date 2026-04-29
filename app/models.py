@@ -28,5 +28,5 @@ class RequestLog(Base):
     id = Column(Integer, primary_key=True, index=True)
     api_key_id = Column(Integer, ForeignKey("rl_api_keys.id"))
     timestamp = Column(DateTime, default=datetime.utcnow)
-
+    endpoint = Column(String, default="unknown")
     api_key = relationship("APIKey", back_populates="requests")

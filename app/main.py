@@ -48,6 +48,7 @@ def get_api_key(request : Request, x_api_key: str = Header(...), db: Session = D
 
     remaining = MAX_REQUESTS - request_count - 1
     reset_time = int((datetime.utcnow() + timedelta(seconds=WINDOW_SECONDS)).timestamp())
+    endpoint = Column(String, default="unknown")
 
     if request_count >= MAX_REQUESTS:
         raise HTTPException(status_code=429, 

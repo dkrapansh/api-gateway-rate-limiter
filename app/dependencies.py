@@ -5,6 +5,7 @@ from .database import SessionLocal
 from .models import APIKey, RequestLog
 from .utils import hash_api_key
 from .config import settings
+from sqlalchemy import func
 
 def get_db():
     db = SessionLocal()
@@ -30,6 +31,7 @@ def get_api_key(
         raise HTTPException(status_code=403, detail="API key been revoked")
     
     window_start = datetime.utcnow() - timedelta(seconds=settings.window_seconds)
+    db.query(APIKey).filter(APIKey.id == api_key.id).with_for_update().first()
     request_count = db.query(RequestLog).filter(
         RequestLog.api_key_id == api_key.id,
         RequestLog.timestamp >= window_start

@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from pydantic import ConfigDict
+from typing import Dict
 
 class UserCreate(BaseModel):
     email: str
@@ -11,3 +12,9 @@ class RegisterResponse(BaseModel):
 
 class RevokeResponse(BaseModel):
     message: str
+
+class AnalyticsResponse(BaseModel):
+    api_key_hash: str
+    total_requests: int
+    requests_per_endpoint: Dict[str, int]
+    rate_limit_hits: int

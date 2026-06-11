@@ -1,5 +1,3 @@
-![CI](https://github.com/dkrapansh/api-gateway-rate-limiter/actions/workflows/ci.yml/badge.svg)
-
 # API Gateway with Rate Limiting
 
 A production-structured API gateway built with FastAPI and PostgreSQL. Clients authenticate via API keys, requests are rate limited per key using a sliding window algorithm, and every request is logged for observability. The project is layered into separate routes, schemas, services, and dependencies following real backend architecture patterns.

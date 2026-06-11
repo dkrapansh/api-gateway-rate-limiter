@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    runs-on: postgres:15
+    runs-on: ubuntu-latest
 
     services:
       postgres:
